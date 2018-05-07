@@ -1,0 +1,4 @@
+g++ -Iinclude -c `sdl2-config --cflags` -std=c++11 src/geometry.cpp -o build/geometry.o
+g++ -Iinclude -c `sdl2-config --cflags` -std=c++11 src/glwindow.cpp -o build/glwindow.o
+g++ -Iinclude -c `sdl2-config --cflags` -std=c++11 src/main.cpp -o build/main.o
+g++ build/geometry.o build/glwindow.o build/main.o -o build/prac1 `sdl2-config --libs` -lGLEW -lGL
