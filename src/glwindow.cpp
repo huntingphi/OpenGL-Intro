@@ -151,11 +151,13 @@ void OpenGLWindow::initGL()
     glUseProgram(shader);
 
     int colorLoc = glGetUniformLocation(shader, "objectColor");
-    glUniform3f(colorLoc, 1.0f, 1.0f, 1.0f);
+    glUniform3f(colorLoc, 1.0f, 1.0f, 1.0f);    
 
     // Load the model that we want to use and buffer the vertex attributes
-    //GeometryData geometry = loadOBJFile("tri.obj");
-
+    // GeometryData geometry = loadOBJFile("tri.obj");
+    GeometryData geometry;
+    geometry.loadFromOBJFile("/home/minad/Documents/CSC3020H/Assignments/opengl-prac1/src/doggo.obj");
+    vertex_count = geometry.vertexCount();
     int vertexLoc = glGetAttribLocation(shader, "position");
     float vertices[9] = { 0.0f,  0.5f, 0.0f,
                          -0.5f, -0.5f, 0.0f,
@@ -163,6 +165,8 @@ void OpenGLWindow::initGL()
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, 9*sizeof(float), vertices, GL_STATIC_DRAW);
+    // glBufferData(GL_ARRAY_BUFFER, geometry.vertexCount() *3*sizeof(float), geometry.vertexData(), GL_STATIC_DRAW);
+
     glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 0, 0);
     glEnableVertexAttribArray(vertexLoc);
 
@@ -173,7 +177,8 @@ void OpenGLWindow::render()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+    glDrawBuffer(GL_ARRAY_BUFFER);
 
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
     // onto the screen (whereas previously it only existed in memory)

@@ -21,6 +21,7 @@ private:
     GLuint vao;
     GLuint shader;
     GLuint vertexBuffer;
+    GLsizei vertex_count;
 };
 
 #endif
