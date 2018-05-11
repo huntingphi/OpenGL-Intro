@@ -294,7 +294,8 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         if (e.key.keysym.sym == SDLK_r)
         {
             if(mode == rotate_x)mode=rotate_y;
-            if(mode == rotate_y)mode=rotate_x;
+            else if(mode == rotate_y)mode=rotate_x;
+            else mode = rotate_x;
             
             SDL_WarpMouseInWindow(sdlWin, 320, 240);
         }
