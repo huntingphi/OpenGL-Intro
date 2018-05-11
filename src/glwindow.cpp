@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdio.h>
+#include <sstream>
 
 // #include "SDL.h"
 #include <SDL2/SDL.h>
@@ -7,6 +8,7 @@
 
 #include "glwindow.h"
 #include "geometry.h"
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 
@@ -100,18 +102,35 @@ OpenGLWindow::OpenGLWindow()
 
 void OpenGLWindow::initGL()
 {
-    // We need to first specify what type of OpenGL context we need before we can create the window
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    std::string file;
+if(1==0){
+    std::cout << "Enter the .obj file you wish to load (from the objects folder)" << std::endl;
+    std::cin >>file;
+    std::cout << "Enter the RGBA color you wish the object to load in (in the format R G B A)" << std::endl;
+    std::cin >> r;
+    std::cin >> g;
+    std::cin >> b;
+    std::cin >> a;
+}else{
+    r=0.5f;
+    g = 1.0f;
+    b = 0.5f;
+    a = 0.5f;
+    file = "doggo.obj";
+}
 
-    sdlWin = SDL_CreateWindow("OpenGL Prac 1",
-                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              640, 480, SDL_WINDOW_OPENGL);
-    if(!sdlWin)
-    {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Error", "Unable to create window", 0);
+// We need to first specify what type of OpenGL context we need before we can create the window
+SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+sdlWin = SDL_CreateWindow(file.c_str(), //"MLLJET002 OpenGL Prac 1: ",
+                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                          640, 480, SDL_WINDOW_OPENGL);
+if (!sdlWin)
+{
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Error", "Unable to create window", 0);
     }
     SDL_GLContext glc = SDL_GL_CreateContext(sdlWin);
     SDL_GL_MakeCurrent(sdlWin, glc);
@@ -151,12 +170,38 @@ void OpenGLWindow::initGL()
     glUseProgram(shader);
 
     int colorLoc = glGetUniformLocation(shader, "objectColor");
-    glUniform3f(colorLoc, 1.0f, 1.0f, 1.0f);    
+    glUniform3f(colorLoc, r, g, b );//1.0f, 1.0f, 1.0f);
+
+    // Get a handle for our "MVP" uniform
+    OpenGLWindow::TransformationID = glGetUniformLocation(shader, "MVP");
+
+    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    OpenGLWindow::Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+    // Or, for an ortho camera :
+    // glm::mat4 Projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world coordinates
+
+    // Camera matrix
+    OpenGLWindow::View = glm::lookAt(
+        // glm::vec3(4,3,3),
+        glm::vec3(0, 0, 3), // Camera is at (4,3,3), in World Space
+        glm::vec3(0, 0, 0), // and looks at the origin
+        glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+    );
+    float model_arr[16] = {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f};
+    // Model matrix : an identity matrix (model will be at the origin)
+    glm::mat4 model_matrix = glm::mat4(1.0f);//glm::translate(glm::mat4(), glm::vec3(1.0f, 0.0f, 0.0f));//glm::make_mat4(model_arr);
+    OpenGLWindow::Model = model_matrix;//0.5f,0.5f,0.5f,1.0f);
+    // Our ModelViewProjection : multiplication of our 3 matrices
+    OpenGLWindow::MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
 
     // Load the model that we want to use and buffer the vertex attributes
     // GeometryData geometry = loadOBJFile("tri.obj");
     GeometryData geometry;
-    geometry.loadFromOBJFile("/home/minad/Documents/CSC3020H/Assignments/opengl-prac1/src/doggo.obj");
+    geometry.loadFromOBJFile("../objects/" +file); //"/home/minad/Documents/CSC3020H/Assignments/opengl-prac1/src/doggo.obj");
     vertex_count = geometry.vertexCount();
     int vertexLoc = glGetAttribLocation(shader, "position");
     float vertices[9] = { 0.0f,  0.5f, 0.0f,
@@ -164,9 +209,21 @@ void OpenGLWindow::initGL()
                           0.5f, -0.5f, 0.0f };
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 9*sizeof(float), vertices, GL_STATIC_DRAW);
-    // glBufferData(GL_ARRAY_BUFFER, geometry.vertexCount() *3*sizeof(float), geometry.vertexData(), GL_STATIC_DRAW);
+    // glBufferData(GL_ARRAY_BUFFER, 9*sizeof(float), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, geometry.vertexCount() *3*sizeof(float), geometry.vertexData(), GL_STATIC_DRAW);
 
+    glUseProgram(shader);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vao);
+    glVertexAttribPointer(
+        0,        // attribute. No particular reason for 0, but must match the layout in the shader.
+        3,        // size
+        GL_FLOAT, // type
+        GL_FALSE, // normalized?
+        0,        // stride
+        (void *)0 // array buffer offset
+    );
+    // glUniformMatrix4fv(TransformationID, 1, GL_TRUE, &MVP[0][0]);
     glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 0, 0);
     glEnableVertexAttribArray(vertexLoc);
 
@@ -175,9 +232,12 @@ void OpenGLWindow::initGL()
 
 void OpenGLWindow::render()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUniformMatrix4fv(TransformationID, 1, GL_FALSE, &MVP[0][0]);
 
-    glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // in the "MVP" uniform
+    glDrawArrays(GL_POINTS, 0, vertex_count);
     glDrawBuffer(GL_ARRAY_BUFFER);
 
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
@@ -197,8 +257,41 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         {
             return false;
         }
+        if(e.key.keysym.sym == SDLK_c){
+            OpenGLWindow::changeColor();
+            int colorLoc = glGetUniformLocation(shader, "objectColor");
+            glUniform3f(colorLoc, r, g, b); //1.0f, 1.0f, 1.0f);
+        }
+        if(e.key.keysym.sym == SDLK_q){
+            glm::mat4 model_matrix =glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 1.0f)); //glm::mat4(1.0f);
+            // OpenGLWindow::Model = model_matrix;
+            OpenGLWindow::MVP *= model_matrix; //0.5f,0.5f,0.5f,1.0f);
+            // glUniformMatrix4fv(TransformationID, 1, GL_FALSE, &OpenGLWindow::MVP[0][0]);
+            // int vertexLoc = glGetAttribLocation(shader, "position");
+
+            // glUseProgram(shader);
+            // glEnableVertexAttribArray(0);
+            // glBindBuffer(GL_ARRAY_BUFFER, vao);
+            // glVertexAttribPointer(
+            //     0,        // attribute. No particular reason for 0, but must match the layout in the shader.
+            //     3,        // size
+            //     GL_FLOAT, // type
+            //     GL_FALSE, // normalized?
+            //     0,        // stride
+            //     (void *)0 // array buffer offset
+            // );
+            // glUniformMatrix4fv(TransformationID, 1, GL_FALSE, &MVP[0][0]);
+            // // glUniformMatrix4fv(TransformationID, 1, GL_TRUE, &MVP[0][0]);
+            // glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 0, 0);
+            // glEnableVertexAttribArray(vertexLoc);
+        }
     }
     return true;
+
+    // glm::mat4 myMatrix;
+    // glm::vec4 myVector;
+    // fill myMatrix and myVector somehow
+    // glm::vec4 transformedVector = myMatrix * myVector; // Again, in this order ! this is important.
 }
 
 void OpenGLWindow::cleanup()

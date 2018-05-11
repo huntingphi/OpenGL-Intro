@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
-
+#include <iostream>
+#include <string>
 #include "glwindow.h"
 
 // In order to make cross-platform development and deployment easy, SDL implements its own main
@@ -12,6 +13,7 @@ int main(int argc, char** argv)
 int SDL_main(int argc, char** argv)
 #endif
 {
+    
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Error", "Unable to initialize SDL", 0);

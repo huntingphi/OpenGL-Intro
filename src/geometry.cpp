@@ -314,3 +314,8 @@ void* GeometryData::bitangentData()
 {
     return (void*)&bitangents[0];
 }
+
+// void* GeometryData::transform(){
+//     glm::mat4 myModelMatrix = translation * rotation * scaling;
+//     glm::vec4 myTransformedVector = myModelMatrix * glm::vec3(vertices[1]);
+// }
