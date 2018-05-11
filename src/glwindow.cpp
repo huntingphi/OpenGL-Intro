@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
+OpenGLWindow::state mode;
 
 const char* glGetErrorString(GLenum error)
 {
@@ -102,6 +103,7 @@ OpenGLWindow::OpenGLWindow()
 
 void OpenGLWindow::initGL()
 {
+    mode = view;
     std::string file;
 if(1==0){
     std::cout << "Enter the .obj file you wish to load (from the objects folder)" << std::endl;
@@ -279,10 +281,22 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
             glUniform3f(colorLoc, r, g, b); //1.0f, 1.0f, 1.0f);
         }
         if(e.key.keysym.sym == SDLK_t){
+            mode = translate;
             SDL_WarpMouseInWindow(sdlWin, 320, 240);
             // OpenGLWindow::state = 1;
             // glm::mat4 model_matrix =glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f)); //glm::mat4(1.0f);
             // OpenGLWindow::MVP *= model_matrix; //0.5f,0.5f,0.5f,1.0f);
+        }
+        if(e.key.keysym.sym == SDLK_s){
+            mode = scale;
+            SDL_WarpMouseInWindow(sdlWin, 320, 240);
+        }
+        if (e.key.keysym.sym == SDLK_r)
+        {
+            if(mode == rotate_x)mode=rotate_y;
+            if(mode == rotate_y)mode=rotate_x;
+            
+            SDL_WarpMouseInWindow(sdlWin, 320, 240);
         }
     }
     if (e.type == SDL_MOUSEMOTION)
@@ -290,7 +304,7 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         // int x_i, y_i;
         // SDL_GetGlobalMouseState(&x_i, &y_i);
         // if(OpenGLWindow::state==1){
-        if(1==1){
+        if(mode!=view){
         int x_f, y_f;
         SDL_GetGlobalMouseState(&x_f, &y_f);
         OpenGLWindow::changeColor();
@@ -304,38 +318,27 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         if(y_f < y_i)diff_y = 0.01f;
         x_i= x_f;
         y_i = y_f;
+        glm::mat4 model_matrix;
 
-        // glm::mat4 model_matrix = glm::translate(glm::mat4(), glm::vec3(diff_x, diff_y, diff_z)); //glm::mat4(1.0f);
-        // glm::mat4 model_matrix = glm::rotate(glm::mat4(), diff_x, glm::vec3(0,1,0)); //glm::mat4(1.0f);
-        // glm::mat4 model_matrix = glm::rotate(glm::mat4(), diff_y, glm::vec3(0, 1, 0)); //glm::mat4(1.0f);
-        glm::mat4 model_matrix = glm::scale(glm::mat4(), glm::vec3(1+diff_x, 1+diff_y, 1+diff_z)); //glm::mat4(1.0f);
-
-        // std::cout<<"X:"<<(x)<<"Y:"<<(y);
+        switch (mode)
+        {
+        case translate:
+            model_matrix = glm::translate(glm::mat4(), glm::vec3(diff_x, diff_y, diff_z)); //glm::mat4(1.0f);
+            break;
+        case rotate_x:
+            model_matrix = glm::rotate(glm::mat4(), diff_x, glm::vec3(0,1,0)); //glm::mat4(1.0f);
+            break;
+        case rotate_y:
+            model_matrix = glm::rotate(glm::mat4(), diff_y, glm::vec3(1, 0, 0)); //glm::mat4(1.0f);
+            break;
+        case rotate_z:
+            // glm::mat4 model_matrix = glm::rotate(glm::mat4(), diff_y*0.5+diff_x*0.5, glm::vec3(1, 0, 0)); //glm::mat4(1.0f);
+            break;
+        case scale:
+            model_matrix = glm::scale(glm::mat4(), glm::vec3(1+diff_x, 1+diff_y, 1+diff_z)); //glm::mat4(1.0f);
+            break;
+    }
         OpenGLWindow::MVP *= model_matrix;  
-        // OpenGLWindow::MVP*=glm::rotate(glm::mat4(), diff_y, glm::vec3(1, 0, 0));
-        }
-        else if(1==2){
-            // float horizontalAngle = 3.14f;
-            // // vertical angle : 0, look at the horizon
-            // float verticalAngle = 0.0f;
-            // // Initial Field of View
-            // float initialFoV = 45.0f;
-
-            // float speed = 3.0f; // 3 units / second
-            // float mouseSpeed = 0.005f;
-            // int xpos, ypos;
-            // SDL_GetGlobalMouseState(&xpos, &ypos);
-            // horizontalAngle += mouseSpeed * deltaTime * float(320 - xpos);
-            // verticalAngle += mouseSpeed * deltaTime * float(240 - ypos);
-            // glm::vec3 direction(
-            //     cos(verticalAngle) * sin(horizontalAngle),
-            //     sin(verticalAngle),
-            //     cos(verticalAngle) * cos(horizontalAngle));
-            // glm::vec3 right = glm::vec3(
-            //     sin(horizontalAngle - 3.14f / 2.0f),
-            //     0,
-            //     cos(horizontalAngle - 3.14f / 2.0f));
-            // glm::vec3 up = glm::cross(right, direction);
         }
     }
 
