@@ -1,18 +1,25 @@
-OpenGL Practical Framework
-==========================
+# OpenGL Intro Prac
 
-This is a basic framework which you can use as a starting point for your practical.
-It uses the SDL library to create a window with an OpenGL context and contains sample code which will create a window and draw a triangle.
-It also contains code that will load Wavefront OBJ 3D model files so that you don't need to write your own loader, you just need to figure out how to make use of the data it loads for you.
-Included in this framework is a set of sample models and a sample pair of textures for you to use.
-Note that while the OBJ loader should in theory support most OBJ files, it has not been tested much in the wild and may have some trouble with more complicated models (more detail in geometry.cpp).
+Jethro Moller MLLJET002
 
-Usage Instructions:
-===================
-Two makefiles are provided, one for linux (which works on the lab PCs) and one for Windows.
-To use the linux makefile (./Makefile) just run 'make' to compile and 'make run' to run.
-To use the Windows makefile (./Makefile_win), run 'make -f Makefile_win' to compile, and 'make -f Makefile_win run' to run.
-Note that you will need to have Visual Studio installed and be running from its own console ("Developer Command Prompt for VS...") in order for it to work
+Compile with make, run with make run
 
-When running on Windows, you will need to have `SDL2.dll` and `glew32.dll` included in the same directory as your executable.
-For linux you simply need the `libsdl2-dev` and `libglew-dev` package installed.
+The following settings were used:
+    Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    Camera is at (0,0,3), in World Space (On the Z-Axis)
+
+Controls:
+    The assignment spec indicates that keys should be used to switch to different transformations but the transformations themselves should be mouse driven.
+    The following controls were therefore implemented.
+    The model will load in view mode by default where no transformations may be applied.
+    Scaling mode can be entered with the S key. The object will scale based on the movement of the mouse.
+    Rotating mode can be entered with the R key. Repeatedly hitting R will toggle between rotation on the X and on the Y axis. The object will rotate based on the movement of the mouse.
+    Translating mode can be entered with the T key. The object will move based on the movement of the mouse.
+
+    Extra: The modes can also be controlled with the arrow keys where up and right correspond to positive and left and down to negative, in the context of an imaginary cartesian plane centered at the center of the window.
+
+Color changes at random with any transformation (when driven by the mouse) but can also be changed to a random color by hitting c.
+
+
+Final notes:
+    Although a working implementation wasn't completed for two images, two models were loaded in the buffer. (See OpenGLInit2() method).
