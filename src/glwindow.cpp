@@ -226,12 +226,26 @@ if (!sdlWin)
     // glUniformMatrix4fv(TransformationID, 1, GL_TRUE, &MVP[0][0]);
     glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 0, 0);
     glEnableVertexAttribArray(vertexLoc);
-
+    SDL_WarpMouseInWindow(sdlWin, 320, 240);
+    int x, y;
+    SDL_GetGlobalMouseState(&x, &y);
+    // if(x==320&&y==240)
+    x_i = x;
+    y_i = y;
+    z_i = 0;
+    // std::cout << "X:" << (x) << "Y:" << (x);
     glPrintError("Setup complete", true);
 }
 
 void OpenGLWindow::render()
 {
+    // Compute the MVP matrix from keyboard and mouse input
+    // computeMatricesFromInputs();
+    // glm::mat4 ProjectionMatrix = getProjectionMatrix();
+    // glm::mat4 ViewMatrix = getViewMatrix();
+    // glm::mat4 ModelMatrix = glm::mat4(1.0);
+    // glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
     glUniformMatrix4fv(TransformationID, 1, GL_FALSE, &MVP[0][0]);
 
     
@@ -243,6 +257,8 @@ void OpenGLWindow::render()
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
     // onto the screen (whereas previously it only existed in memory)
     SDL_GL_SwapWindow(sdlWin);
+
+    // SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
 // The program will exit if this function returns false
@@ -262,30 +278,67 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
             int colorLoc = glGetUniformLocation(shader, "objectColor");
             glUniform3f(colorLoc, r, g, b); //1.0f, 1.0f, 1.0f);
         }
-        if(e.key.keysym.sym == SDLK_q){
-            glm::mat4 model_matrix =glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 1.0f)); //glm::mat4(1.0f);
-            // OpenGLWindow::Model = model_matrix;
-            OpenGLWindow::MVP *= model_matrix; //0.5f,0.5f,0.5f,1.0f);
-            // glUniformMatrix4fv(TransformationID, 1, GL_FALSE, &OpenGLWindow::MVP[0][0]);
-            // int vertexLoc = glGetAttribLocation(shader, "position");
-
-            // glUseProgram(shader);
-            // glEnableVertexAttribArray(0);
-            // glBindBuffer(GL_ARRAY_BUFFER, vao);
-            // glVertexAttribPointer(
-            //     0,        // attribute. No particular reason for 0, but must match the layout in the shader.
-            //     3,        // size
-            //     GL_FLOAT, // type
-            //     GL_FALSE, // normalized?
-            //     0,        // stride
-            //     (void *)0 // array buffer offset
-            // );
-            // glUniformMatrix4fv(TransformationID, 1, GL_FALSE, &MVP[0][0]);
-            // // glUniformMatrix4fv(TransformationID, 1, GL_TRUE, &MVP[0][0]);
-            // glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 0, 0);
-            // glEnableVertexAttribArray(vertexLoc);
+        if(e.key.keysym.sym == SDLK_t){
+            SDL_WarpMouseInWindow(sdlWin, 320, 240);
+            // OpenGLWindow::state = 1;
+            // glm::mat4 model_matrix =glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f)); //glm::mat4(1.0f);
+            // OpenGLWindow::MVP *= model_matrix; //0.5f,0.5f,0.5f,1.0f);
         }
     }
+    if (e.type == SDL_MOUSEMOTION)
+    {
+        // int x_i, y_i;
+        // SDL_GetGlobalMouseState(&x_i, &y_i);
+        // if(OpenGLWindow::state==1){
+        if(1==1){
+        int x_f, y_f;
+        SDL_GetGlobalMouseState(&x_f, &y_f);
+        OpenGLWindow::changeColor();
+        int colorLoc = glGetUniformLocation(shader, "objectColor");
+        glUniform3f(colorLoc, r, g, b); //1.0f, 1.0f, 1.0f);
+        float diff_x, diff_y, diff_z;
+        diff_x = 0.0f;
+        if(x_f > x_i)diff_x = 0.01f;
+        if(x_f < x_i)diff_x = -0.01f;
+        if(y_f > y_i)diff_y = -0.01f;
+        if(y_f < y_i)diff_y = 0.01f;
+        x_i= x_f;
+        y_i = y_f;
+
+        // glm::mat4 model_matrix = glm::translate(glm::mat4(), glm::vec3(diff_x, diff_y, diff_z)); //glm::mat4(1.0f);
+        // glm::mat4 model_matrix = glm::rotate(glm::mat4(), diff_x, glm::vec3(0,1,0)); //glm::mat4(1.0f);
+        // glm::mat4 model_matrix = glm::rotate(glm::mat4(), diff_y, glm::vec3(0, 1, 0)); //glm::mat4(1.0f);
+        glm::mat4 model_matrix = glm::scale(glm::mat4(), glm::vec3(1+diff_x, 1+diff_y, 1+diff_z)); //glm::mat4(1.0f);
+
+        // std::cout<<"X:"<<(x)<<"Y:"<<(y);
+        OpenGLWindow::MVP *= model_matrix;  
+        // OpenGLWindow::MVP*=glm::rotate(glm::mat4(), diff_y, glm::vec3(1, 0, 0));
+        }
+        else if(1==2){
+            // float horizontalAngle = 3.14f;
+            // // vertical angle : 0, look at the horizon
+            // float verticalAngle = 0.0f;
+            // // Initial Field of View
+            // float initialFoV = 45.0f;
+
+            // float speed = 3.0f; // 3 units / second
+            // float mouseSpeed = 0.005f;
+            // int xpos, ypos;
+            // SDL_GetGlobalMouseState(&xpos, &ypos);
+            // horizontalAngle += mouseSpeed * deltaTime * float(320 - xpos);
+            // verticalAngle += mouseSpeed * deltaTime * float(240 - ypos);
+            // glm::vec3 direction(
+            //     cos(verticalAngle) * sin(horizontalAngle),
+            //     sin(verticalAngle),
+            //     cos(verticalAngle) * cos(horizontalAngle));
+            // glm::vec3 right = glm::vec3(
+            //     sin(horizontalAngle - 3.14f / 2.0f),
+            //     0,
+            //     cos(horizontalAngle - 3.14f / 2.0f));
+            // glm::vec3 up = glm::cross(right, direction);
+        }
+    }
+
     return true;
 
     // glm::mat4 myMatrix;
